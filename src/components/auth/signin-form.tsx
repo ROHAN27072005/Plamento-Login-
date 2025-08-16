@@ -116,13 +116,6 @@ export function SignInForm() {
                   Sign Up
               </Link>
           </p>
-          <div className="text-center text-xs text-muted-foreground space-x-4">
-              <Link href="#" className="hover:text-primary">Support</Link>
-              <span>&bull;</span>
-              <Link href="#" className="hover:text-primary">Privacy</Link>
-              <span>&bull;</span>
-              <Link href="#" className="hover:text-primary">Terms</Link>
-          </div>
       </CardFooter>
     </Card>
   );
