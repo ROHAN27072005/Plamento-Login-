@@ -198,7 +198,7 @@ export function ForgotPasswordForm() {
                     <FormItem>
                       <FormLabel>Verification Code</FormLabel>
                       <FormControl>
-                        <InputOTP maxLength={6} value={field.value} onChange={(value) => field.onChange(value)}>
+                        <InputOTP maxLength={6} {...field}>
                           <InputOTPGroup>
                             <InputOTPSlot index={0} />
                             <InputOTPSlot index={1} />

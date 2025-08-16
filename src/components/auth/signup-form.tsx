@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -20,6 +21,20 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase-client';
 
+const phoneValidation = (countryCode: string, phone: string) => {
+    if (countryCode === '+91') return /^\d{10}$/.test(phone);
+    if (countryCode === '+1') return /^\d{10}$/.test(phone);
+    if (countryCode === '+44') return /^\d{10}$/.test(phone);
+    return true; // No validation for other country codes
+};
+
+const getPhoneMessage = (countryCode: string) => {
+    if (countryCode === '+91') return 'Phone number must be 10 digits for India';
+    if (countryCode === '+1') return 'Phone number must be 10 digits for US/Canada';
+    if (countryCode === '+44') return 'Phone number must be 10 digits for the UK';
+    return 'Invalid phone number';
+}
+
 const signUpSchema = z.object({
     firstName: z.string().min(1, 'First name is required'),
     lastName: z.string().min(1, 'Last name is required'),
@@ -34,36 +49,16 @@ const signUpSchema = z.object({
         .regex(/[0-9]/, 'Password must contain a number')
         .regex(/[^a-zA-Z0-9]/, 'Password must contain a special character'),
     confirmPassword: z.string()
-}).refine(data => data.password === data.confirmPassword, {
+})
+.refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword']
-}).superRefine((data, ctx) => {
-    if (data.countryCode === '+91') {
-        if (!/^\d{10}$/.test(data.phone)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Phone number must be 10 digits for India',
-                path: ['phone']
-            });
-        }
-    } else if (data.countryCode === '+1') {
-         if (!/^\d{10}$/.test(data.phone)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Phone number must be 10 digits for US/Canada',
-                path: ['phone']
-            });
-        }
-    } else if (data.countryCode === '+44') {
-        if (!/^\d{10}$/.test(data.phone)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Phone number must be 10 digits for the UK',
-                path: ['phone']
-            });
-        }
-    }
+})
+.refine(data => phoneValidation(data.countryCode, data.phone), {
+    message: getPhoneMessage(z.string().parse('+91')), // Default message, will be updated
+    path: ['phone'],
 });
+
 
 export function SignUpForm() {
   const router = useRouter();
@@ -86,6 +81,15 @@ export function SignUpForm() {
   });
 
   const password = form.watch('password');
+  const countryCode = form.watch('countryCode');
+
+  React.useEffect(() => {
+    const message = getPhoneMessage(countryCode);
+    if (form.formState.errors.phone?.message !== message) {
+        form.clearErrors('phone');
+    }
+  }, [countryCode, form]);
+
 
   const passwordRequirements = [
     { text: 'At least 8 characters', fulfilled: (password?.length ?? 0) >= 8 },
@@ -97,6 +101,16 @@ export function SignUpForm() {
 
   async function onSubmit(values: z.infer<typeof signUpSchema>) {
     setIsLoading(true);
+
+    if (!phoneValidation(values.countryCode, values.phone)) {
+        form.setError('phone', {
+            type: 'manual',
+            message: getPhoneMessage(values.countryCode)
+        });
+        setIsLoading(false);
+        return;
+    }
+
     const { email, password, firstName, lastName, phone, countryCode, dob } = values;
     
     const { data, error } = await supabase.auth.signUp({
