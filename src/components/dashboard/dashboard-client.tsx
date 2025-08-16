@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase-client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,20 +14,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LayoutGrid, LogOut, User, Loader2 } from 'lucide-react';
+import { LayoutGrid, LogOut, User, Loader2, Mail, Phone, Calendar } from 'lucide-react';
 import Image from 'next/image';
+import { format } from 'date-fns';
 
 interface UserProfile {
     first_name: string;
     last_name: string;
     email: string;
-    avatar_url: string;
+    phone: string;
+    dob: string;
 }
 
 export function DashboardClient() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -41,7 +44,19 @@ export function DashboardClient() {
 
         if (error) {
           console.error('Error fetching profile:', error);
-          router.push('/signin'); // Redirect if profile not found or error
+          // It's possible the profile creation via trigger is pending.
+          // For now, we'll use auth data and redirect if that's also missing.
+          if (user.email && user.user_metadata) {
+            setProfile({
+              email: user.email,
+              first_name: user.user_metadata.first_name,
+              last_name: user.user_metadata.last_name,
+              phone: user.user_metadata.phone,
+              dob: user.user_metadata.dob,
+            });
+          } else {
+             router.push('/signin'); // Redirect if profile not found or error
+          }
         } else {
           setProfile(data);
         }
@@ -59,8 +74,8 @@ export function DashboardClient() {
     router.push('/signin');
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
+  const getInitials = (firstName?: string) => {
+    return `${firstName?.[0] ?? ''}`.toUpperCase();
   };
   
   if (loading) {
@@ -74,18 +89,13 @@ export function DashboardClient() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
       <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6 z-10">
-        <h1 className="text-xl font-semibold">Dashboard</h1>
+        <h1 className="text-xl font-semibold">{showProfile ? 'User Profile' : 'Dashboard'}</h1>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
               <Avatar>
-                {profile?.avatar_url ? (
-                    <AvatarImage src={profile.avatar_url} alt="User Avatar" />
-                ) : (
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="User Avatar" data-ai-hint="avatar user"  className="hidden" />
-                )}
-                <AvatarFallback>
-                    {profile ? getInitials(profile.first_name, profile.last_name) : 'U'}
+                 <AvatarFallback>
+                    {getInitials(profile?.first_name)}
                 </AvatarFallback>
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
@@ -106,9 +116,9 @@ export function DashboardClient() {
                 )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowProfile(!showProfile)}>
               <User className="mr-2 h-4 w-4" />
-              <span>View Profile</span>
+              <span>{showProfile ? 'Hide Profile' : 'View Profile'}</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -120,26 +130,66 @@ export function DashboardClient() {
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="mb-4">
             <h2 className="text-3xl font-bold tracking-tight">Welcome to Plamento{profile ? `, ${profile.first_name}` : ''}!</h2>
-            <p className="text-muted-foreground">Here's a snapshot of your workspace.</p>
+            <p className="text-muted-foreground">{showProfile ? 'Here are your account details.' : 'Here\'s a snapshot of your workspace.'}</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((item) => (
-            <Card key={item}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Placeholder Card {item}
-                </CardTitle>
-                <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">...</div>
-                <p className="text-xs text-muted-foreground">
-                  Some detail about this card.
-                </p>
-              </CardContent>
+        
+        {showProfile ? (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Profile Information</CardTitle>
+                    <CardDescription>Your personal details.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <User className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex-1">
+                            <p className="text-sm text-muted-foreground">Full Name</p>
+                            <p className="font-medium">{profile?.first_name} {profile?.last_name}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Mail className="h-5 w-5 text-muted-foreground" />
+                         <div className="flex-1">
+                            <p className="text-sm text-muted-foreground">Email</p>
+                            <p className="font-medium">{profile?.email}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Phone className="h-5 w-5 text-muted-foreground" />
+                         <div className="flex-1">
+                            <p className="text-sm text-muted-foreground">Phone</p>
+                            <p className="font-medium">{profile?.phone}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                         <div className="flex-1">
+                            <p className="text-sm text-muted-foreground">Date of Birth</p>
+                            <p className="font-medium">{profile?.dob ? format(new Date(profile.dob), 'PPP') : 'N/A'}</p>
+                        </div>
+                    </div>
+                </CardContent>
             </Card>
-          ))}
-        </div>
+        ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((item) => (
+                <Card key={item}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                    Placeholder Card {item}
+                    </CardTitle>
+                    <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">...</div>
+                    <p className="text-xs text-muted-foreground">
+                    Some detail about this card.
+                    </p>
+                </CardContent>
+                </Card>
+            ))}
+            </div>
+        )}
       </main>
     </div>
   );
