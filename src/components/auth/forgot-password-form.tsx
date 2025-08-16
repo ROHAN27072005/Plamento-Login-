@@ -20,6 +20,7 @@ import { generateResetCode } from '@/ai/flows/secure-password-reset-code';
 import { updatePassword } from '@/app/actions/update-password';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase-client';
+import { sendResetEmail } from '@/app/actions/send-reset-email';
 
 const emailSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -83,6 +84,38 @@ export function ForgotPasswordForm() {
     { text: 'One number', fulfilled: /[0-9]/.test(password) },
     { text: 'One special character', fulfilled: /[^a-zA-Z0-9]/.test(password) },
   ];
+  
+  const sendVerificationCode = async (email: string, userId: string) => {
+    const generatedCode = await generateResetCode();
+
+    if (generatedCode) {
+        // Store the hashed token in the database
+        const { error: storeTokenError } = await supabase.rpc('store_password_reset_token', { user_id_in: userId, token_in: generatedCode });
+
+        if (storeTokenError) {
+             toast({ variant: 'destructive', title: 'Error', description: 'Could not generate reset code. Please try again.' });
+             setIsLoading(false);
+             return;
+        }
+        
+        // Send the code via email
+        const emailResult = await sendResetEmail({ email: email, code: generatedCode });
+        
+        if (emailResult.error) {
+            toast({ variant: 'destructive', title: 'Error', description: emailResult.error });
+            setIsLoading(false);
+            return;
+        }
+
+        toast({
+          title: 'Verification Code Sent',
+          description: `A 6-digit code has been sent to your email address.`,
+        });
+        
+        return true;
+    }
+    return false;
+  }
 
   const handleEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
     setIsLoading(true);
@@ -90,38 +123,23 @@ export function ForgotPasswordForm() {
     
     const result = await verifyUser(values.email);
 
-    if (result.error) {
-      emailForm.setError('email', { type: 'manual', message: result.error });
+    if (result.error || !result.userId) {
+      emailForm.setError('email', { type: 'manual', message: result.error ?? 'An unknown error occurred.' });
       setIsLoading(false);
       return;
     }
     
-    if (result.userId) {
-      setUserId(result.userId);
-      setEmailForReset(values.email);
-      const generatedCode = await generateResetCode();
+    setUserId(result.userId);
+    setEmailForReset(values.email);
+    
+    const codeSent = await sendVerificationCode(values.email, result.userId);
 
-      if (generatedCode) {
-        // Store the hashed token in the database
-        const { error: storeTokenError } = await supabase.rpc('store_password_reset_token', { user_id_in: result.userId, token_in: generatedCode });
-
-        if (storeTokenError) {
-             toast({ variant: 'destructive', title: 'Error', description: 'Could not generate reset code. Please try again.' });
-             setIsLoading(false);
-             return;
-        }
-
-        // In a real app, you'd email this code.
-        // For this prototype, we'll show it in a toast.
-        toast({
-          title: 'Verification Code',
-          description: `Your code is ${generatedCode}. Please check your email.`,
-        });
+    if (codeSent) {
         setStep(2);
         setResendCooldown(30);
         setCanResend(false);
-      }
     }
+    
     setIsLoading(false);
   };
   
@@ -137,21 +155,9 @@ export function ForgotPasswordForm() {
        return;
     }
     
-    const generatedCode = await generateResetCode();
+    const codeSent = await sendVerificationCode(emailForReset, result.userId);
 
-    if (generatedCode) {
-        const { error: storeTokenError } = await supabase.rpc('store_password_reset_token', { user_id_in: result.userId, token_in: generatedCode });
-
-        if (storeTokenError) {
-             toast({ variant: 'destructive', title: 'Error', description: 'Could not generate new code. Please try again.' });
-             setIsLoading(false);
-             return;
-        }
-
-        toast({
-          title: 'New Verification Code',
-          description: `Your new code is ${generatedCode}.`,
-        });
+    if (codeSent) {
         setCode('');
         setCodeError('');
         setResendCooldown(30);
@@ -350,5 +356,3 @@ export function ForgotPasswordForm() {
 
   return <div>{renderStep()}</div>;
 }
-
-    
