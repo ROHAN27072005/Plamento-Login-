@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase-client';
 import { generateSecurePasswordResetCode } from '@/ai/flows/secure-password-reset-code';
+import { updatePassword } from '@/app/actions/update-password';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,7 +71,8 @@ export function ForgotPasswordForm() {
   const handleEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
     setIsLoading(true);
     try {
-      // 1. Verify if email exists
+      // This is a temporary solution for the prototype to get all users.
+      // In a production environment, this should be a secure server-side call.
       const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();
       
       if (authError) throw authError;
@@ -138,21 +140,18 @@ export function ForgotPasswordForm() {
 
   const handlePasswordSubmit = async (values: z.infer<typeof passwordSchema>) => {
     setIsLoading(true);
-    
-    const { error } = await supabase.auth.admin.updateUserById(userId, {
+
+    const result = await updatePassword({
+        userId: userId,
         password: values.password
     });
-
+    
     setIsLoading(false);
     
-    if (error) {
-       toast({ variant: 'destructive', title: 'Error', description: 'Failed to reset password.' });
+    if (result.error) {
+       toast({ variant: 'destructive', title: 'Error', description: result.error });
     } else {
        toast({ title: 'Password Reset!', description: 'Your password has been successfully reset.' });
-       
-       // Clean up the used token
-       await supabase.from('password_reset_tokens').delete().eq('user_id', userId);
-
        router.push('/signin');
     }
   };
