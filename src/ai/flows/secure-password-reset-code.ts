@@ -18,13 +18,6 @@ export async function generateResetCode(): Promise<ResetCodeOutput> {
   return generateResetCodeFlow({});
 }
 
-const prompt = ai.definePrompt({
-  name: 'passwordResetCodePrompt',
-  input: { schema: ResetCodeInputSchema },
-  output: { schema: ResetCodeOutputSchema },
-  prompt: `Generate a secure, random 6-digit numerical code for a password reset. The code must be exactly 6 digits long and contain only numbers.`,
-});
-
 const generateResetCodeFlow = ai.defineFlow(
   {
     name: 'generateResetCodeFlow',
@@ -32,7 +25,8 @@ const generateResetCodeFlow = ai.defineFlow(
     outputSchema: ResetCodeOutputSchema,
   },
   async () => {
-    const { output } = await prompt({});
-    return output!;
+    // Generate a 6-digit code programmatically.
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    return code;
   }
 );
