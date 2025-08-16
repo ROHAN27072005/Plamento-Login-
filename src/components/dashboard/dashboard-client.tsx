@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -128,66 +129,55 @@ export function DashboardClient() {
         </DropdownMenu>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="mb-4">
+        <div className="mb-4 text-center">
             <h2 className="text-3xl font-bold tracking-tight">Welcome to Plamento{profile ? `, ${profile.first_name}` : ''}!</h2>
             <p className="text-muted-foreground">{showProfile ? 'Here are your account details.' : 'Here\'s a snapshot of your workspace.'}</p>
         </div>
         
         {showProfile ? (
-             <Card>
-                <CardHeader>
-                    <CardTitle>Profile Information</CardTitle>
-                    <CardDescription>Your personal details.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <User className="h-5 w-5 text-muted-foreground" />
-                        <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">Full Name</p>
-                            <p className="font-medium">{profile?.first_name} {profile?.last_name}</p>
+            <div className="flex justify-center">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle>Profile Information</CardTitle>
+                        <CardDescription>Your personal details.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <User className="h-5 w-5 text-muted-foreground" />
+                            <div className="flex-1">
+                                <p className="text-sm text-muted-foreground">Full Name</p>
+                                <p className="font-medium">{profile?.first_name} {profile?.last_name}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Mail className="h-5 w-5 text-muted-foreground" />
-                         <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">Email</p>
-                            <p className="font-medium">{profile?.email}</p>
+                        <div className="flex items-center gap-4">
+                            <Mail className="h-5 w-5 text-muted-foreground" />
+                            <div className="flex-1">
+                                <p className="text-sm text-muted-foreground">Email</p>
+                                <p className="font-medium">{profile?.email}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Phone className="h-5 w-5 text-muted-foreground" />
-                         <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">Phone</p>
-                            <p className="font-medium">{profile?.phone}</p>
+                        <div className="flex items-center gap-4">
+                            <Phone className="h-5 w-5 text-muted-foreground" />
+                            <div className="flex-1">
+                                <p className="text-sm text-muted-foreground">Phone</p>
+                                <p className="font-medium">{profile?.phone}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
-                         <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">Date of Birth</p>
-                            <p className="font-medium">{profile?.dob ? format(new Date(profile.dob), 'PPP') : 'N/A'}</p>
+                        <div className="flex items-center gap-4">
+                            <Calendar className="h-5 w-5 text-muted-foreground" />
+                            <div className="flex-1">
+                                <p className="text-sm text-muted-foreground">Date of Birth</p>
+                                <p className="font-medium">{profile?.dob ? format(new Date(profile.dob), 'PPP') : 'N/A'}</p>
+                            </div>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            </div>
         ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((item) => (
-                <Card key={item}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                    Placeholder Card {item}
-                    </CardTitle>
-                    <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">...</div>
-                    <p className="text-xs text-muted-foreground">
-                    Some detail about this card.
-                    </p>
-                </CardContent>
-                </Card>
-            ))}
+                {[1, 2, 3, 4].map((item) => (
+                    <Card key={item} className="h-32"></Card>
+                ))}
             </div>
         )}
       </main>
