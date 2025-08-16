@@ -101,16 +101,12 @@ export function SignUpForm() {
 
     const { email, password, firstName, lastName, phone, countryCode, dob } = values;
     
-    // We sign up the user but tell Supabase not to send an email by default.
-    // The proper way to do this is to disable the email in the Supabase console,
-    // but this code will send our custom email regardless.
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        // emailRedirectTo is necessary for the confirmation link.
-        // It should point to a page in your app that handles email verification.
-        // For this example, we'll assume a generic callback page.
+        // This tells Supabase not to send its own confirmation email.
+        // We will send our own custom email right after.
         emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         data: {
           first_name: firstName,
@@ -130,7 +126,8 @@ export function SignUpForm() {
       });
       return;
     }
-    
+
+    // This handles the case where the user already exists but is not confirmed.
     if (data.user && data.user.identities && data.user.identities.length === 0) {
         setIsLoading(false);
         toast({
@@ -140,7 +137,8 @@ export function SignUpForm() {
         });
         return;
     }
-
+    
+    // Check if we got a session, which contains the token we need for the email link.
     if (data.session?.access_token) {
        // Now we send our own custom email.
        const emailResult = await sendConfirmationEmail({ email: email, token: data.session.access_token });
@@ -158,21 +156,22 @@ export function SignUpForm() {
        router.push('/signin');
 
     } else if (data.user) {
-         // This handles the case where the user is created but requires verification
-         // and a session is not immediately returned.
-         // We still attempt to send our custom email.
-         // A secure token for email verification would ideally be generated and handled here.
-         // For simplicity, we are showing a generic success message.
-         // A real implementation might need a more robust token exchange.
-         toast({
-            title: "Account Created!",
-            description: "Please check your email to verify your account.",
-          });
-          // We can't generate a token here on the client-side for the email easily,
-          // so we rely on the fact that the user needs to check their email.
-          // The supabase email will have the link, and our custom one is for branding.
-          await sendConfirmationEmail({ email: email, token: "use-link-from-supabase-email" });
-          router.push('/signin');
+         // This handles the case where email confirmation is required, so a session isn't returned.
+         // We can't get a token here, so we will show a generic message and rely on the user
+         // knowing they need to check their email. We'll send an email without a dynamic token for now.
+         // A more robust solution would involve a separate token generation step.
+         
+         const emailResult = await sendConfirmationEmail({ email: email, token: "verify-email" });
+
+         if (emailResult.error) {
+             toast({ variant: 'destructive', title: 'Error', description: emailResult.error });
+         } else {
+             toast({
+                title: "Account Created!",
+                description: "Please check your email to verify your account.",
+              });
+         }
+         router.push('/signin');
     } else {
         toast({
             variant: 'destructive',

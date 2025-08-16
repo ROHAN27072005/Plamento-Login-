@@ -83,4 +83,3 @@ export async function sendConfirmationEmail(input: SendConfirmationEmailInput): 
         return { success: false, error: 'Failed to send confirmation email.' };
     }
 }
-
