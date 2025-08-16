@@ -8,7 +8,7 @@ body {
 
 @layer components {
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent;
   }
 }
 
@@ -49,7 +49,7 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 13%; /* #222222 */
+    --background: 222.2 84% 4.9%; /* Dark Blue */
     --foreground: 0 0% 98%;
     --card: 0 0% 16%;
     --card-foreground: 0 0% 98%;
