@@ -5,14 +5,15 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, CheckCircle2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { verifyUser } from '@/app/actions/verify-user';
 import { generateResetCode } from '@/ai/flows/secure-password-reset-code';
@@ -173,6 +174,14 @@ export function ForgotPasswordForm() {
                 </form>
               </Form>
             </CardContent>
+            <CardFooter>
+                 <Button variant="link" className="w-full text-muted-foreground" asChild>
+                    <Link href="/signin">
+                        <ArrowLeft className="mr-2 h-4 w-4"/>
+                        Back to Sign In
+                    </Link>
+                </Button>
+            </CardFooter>
           </Card>
         );
       case 2:
@@ -210,6 +219,14 @@ export function ForgotPasswordForm() {
                 </form>
               </Form>
             </CardContent>
+            <CardFooter>
+                 <Button variant="link" className="w-full text-muted-foreground" asChild>
+                    <Link href="/signin">
+                        <ArrowLeft className="mr-2 h-4 w-4"/>
+                        Back to Sign In
+                    </Link>
+                </Button>
+            </CardFooter>
           </Card>
         );
        case 3:
@@ -260,6 +277,14 @@ export function ForgotPasswordForm() {
                         </form>
                     </Form>
                 </CardContent>
+                <CardFooter>
+                     <Button variant="link" className="w-full text-muted-foreground" asChild>
+                        <Link href="/signin">
+                            <ArrowLeft className="mr-2 h-4 w-4"/>
+                            Back to Sign In
+                        </Link>
+                    </Button>
+                </CardFooter>
             </Card>
         );
       default:
@@ -269,3 +294,5 @@ export function ForgotPasswordForm() {
 
   return <div>{renderStep()}</div>;
 }
+
+    
