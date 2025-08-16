@@ -71,16 +71,14 @@ export function ForgotPasswordForm() {
     setIsLoading(true);
     try {
       // 1. Verify if email exists
-      const { data: users, error: userError } = await supabase.from('users').select('id').eq('email', values.email);
+      const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) throw authError;
 
-      // This is a workaround for Supabase not having a direct way to check for user existence without admin rights
-      // We are checking the public `users` view which is not ideal, a server-side check would be better.
-      // A more robust solution might involve a serverless function with service_role key.
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
-      const user = authUsers.find(u => u.email === values.email);
+      const user = users.find(u => u.email === values.email);
       
       if (!user) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Email was not registered.' });
+        emailForm.setError('email', { type: 'manual', message: 'Email was not registered.' });
         setIsLoading(false);
         return;
       }
@@ -130,7 +128,7 @@ export function ForgotPasswordForm() {
             toast({ title: 'Code Verified!', description: 'You can now reset your password.' });
             setStep('reset-password');
         } else {
-            toast({ variant: 'destructive', title: 'Invalid Code', description: 'The code you entered is incorrect or has expired.' });
+            codeForm.setError('code', { type: 'manual', message: 'The code you entered is incorrect or has expired.' });
         }
     } catch (error: any) {
         toast({ variant: 'destructive', title: 'Error', description: error.message || 'Failed to verify code.' });
@@ -159,9 +157,9 @@ export function ForgotPasswordForm() {
     }
   };
 
-  const password = passwordForm.watch('password');
+  const password = passwordForm.watch('password', '');
   const passwordRequirements = [
-    { text: 'At least 8 characters', fulfilled: (password?.length ?? 0) >= 8 },
+    { text: 'At least 8 characters', fulfilled: password.length >= 8 },
     { text: 'One uppercase letter', fulfilled: /[A-Z]/.test(password) },
     { text: 'One lowercase letter', fulfilled: /[a-z]/.test(password) },
     { text: 'One number', fulfilled: /[0-9]/.test(password) },

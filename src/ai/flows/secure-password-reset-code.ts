@@ -16,7 +16,7 @@ const GenerateSecurePasswordResetCodeInputSchema = z.object({
 export type GenerateSecurePasswordResetCodeInput = z.infer<typeof GenerateSecurePasswordResetCodeInputSchema>;
 
 const GenerateSecurePasswordResetCodeOutputSchema = z.object({
-  resetCode: z.string().length(6).describe('A secure 6-digit reset code.'),
+  resetCode: z.string().length(6).regex(/^\d{6}$/).describe('A secure 6-digit numerical reset code.'),
 });
 export type GenerateSecurePasswordResetCodeOutput = z.infer<typeof GenerateSecurePasswordResetCodeOutputSchema>;
 
@@ -30,7 +30,7 @@ const generateSecurePasswordResetCodePrompt = ai.definePrompt({
   name: 'generateSecurePasswordResetCodePrompt',
   input: {schema: GenerateSecurePasswordResetCodeInputSchema},
   output: {schema: GenerateSecurePasswordResetCodeOutputSchema},
-  prompt: `You are a security expert who can generate a secure 6-digit reset code for the user's email {{{email}}}. The reset code should be a string of 6 digits.`,
+  prompt: `You are a security expert. Generate a secure, random 6-digit numerical password reset code for the user's email {{{email}}}. The reset code must be a string of exactly 6 digits.`,
 });
 
 const generateSecurePasswordResetCodeFlow = ai.defineFlow(
