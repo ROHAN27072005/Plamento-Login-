@@ -236,7 +236,7 @@ export function ForgotPasswordForm() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                 {passwordRequirements.map((req, i) => (
-                                    <div key={i} className={cn("flex items-center", req.fulfilled ? "text-green-500" : "text-muted-foreground")}>
+                                    <div key={i} className={cn("flex items-center", req.fulfilled ? "text-chart-2" : "text-muted-foreground")}>
                                         <CheckCircle2 className="h-4 w-4 mr-2 flex-shrink-0" />
                                         <span>{req.text}</span>
                                     </div>
