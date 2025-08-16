@@ -24,7 +24,7 @@ const signUpSchema = z.object({
     lastName: z.string().min(1, 'Last name is required'),
     email: z.string().email('Invalid email address'),
     countryCode: z.string(),
-    phone: z.string().min(1, 'Phone number is required'),
+    phone: z.string().min(1, 'Phone number is required').regex(/^\d+$/, 'Phone number must contain only digits'),
     dob: z.date({ required_error: 'Date of birth is required' }),
     password: z.string()
         .min(8, 'Password must be at least 8 characters')
@@ -36,14 +36,32 @@ const signUpSchema = z.object({
 }).refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword']
-}).refine(data => {
+}).superRefine((data, ctx) => {
     if (data.countryCode === '+91') {
-        return /^\d{10}$/.test(data.phone);
+        if (!/^\d{10}$/.test(data.phone)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Phone number must be 10 digits for India',
+                path: ['phone']
+            });
+        }
+    } else if (data.countryCode === '+1') {
+         if (!/^\d{10}$/.test(data.phone)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Phone number must be 10 digits for US/Canada',
+                path: ['phone']
+            });
+        }
+    } else if (data.countryCode === '+44') {
+        if (!/^\d{10}$/.test(data.phone)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Phone number must be 10 digits for the UK',
+                path: ['phone']
+            });
+        }
     }
-    return true;
-}, {
-    message: 'Phone number must be 10 digits for India',
-    path: ['phone']
 });
 
 export function SignUpForm() {
@@ -109,8 +127,12 @@ export function SignUpForm() {
                     <div className="flex gap-2">
                         <FormField control={form.control} name="countryCode" render={({ field }) => (
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger className="w-[80px]"><SelectValue /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="+91">+91</SelectItem></SelectContent>
+                                <FormControl><SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="+91">IN (+91)</SelectItem>
+                                    <SelectItem value="+1">US (+1)</SelectItem>
+                                    <SelectItem value="+44">UK (+44)</SelectItem>
+                                </SelectContent>
                             </Select>
                         )} />
                         <FormField control={form.control} name="phone" render={({ field }) => (
