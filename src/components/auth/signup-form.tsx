@@ -155,12 +155,12 @@ export function SignUpForm() {
 
     const { email, password, firstName, lastName, phone, countryCode, dob } = values;
     
-    // This creates the user but does not confirm their email.
-    // It also does not send Supabase's default email.
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        // This prevents Supabase from sending its own email.
+        // The user's email will be confirmed manually after code verification.
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
         data: {
           first_name: firstName,
@@ -378,6 +378,12 @@ export function SignUpForm() {
                                     date > new Date() || date < new Date("1900-01-01")
                                 }
                                 initialFocus
+                                footer={
+                                    <div className="flex justify-between p-2">
+                                        <Button variant="link" onClick={() => field.onChange(undefined)}>Clear</Button>
+                                        <Button variant="link" onClick={() => field.onChange(new Date())}>Today</Button>
+                                    </div>
+                                }
                             />
                             </PopoverContent>
                         </Popover>
