@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -42,6 +42,7 @@ const passwordSchema = z.object({
 export function ForgotPasswordForm() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailForReset, setEmailForReset] = useState('');
   const [userId, setUserId] = useState('');
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState('');
@@ -49,6 +50,8 @@ export function ForgotPasswordForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(30);
+  const [canResend, setCanResend] = useState(false);
 
   const emailForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -59,6 +62,18 @@ export function ForgotPasswordForm() {
     resolver: zodResolver(passwordSchema),
     defaultValues: { password: '', confirmPassword: '' },
   });
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (step === 2 && resendCooldown > 0) {
+      interval = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    } else if (resendCooldown === 0) {
+      setCanResend(true);
+    }
+    return () => clearInterval(interval);
+  }, [step, resendCooldown]);
 
   const password = passwordForm.watch('password');
   const passwordRequirements = [
@@ -83,6 +98,7 @@ export function ForgotPasswordForm() {
     
     if (result.userId) {
       setUserId(result.userId);
+      setEmailForReset(values.email);
       const generatedCode = await generateResetCode();
 
       if (generatedCode) {
@@ -102,10 +118,47 @@ export function ForgotPasswordForm() {
           description: `Your code is ${generatedCode}. Please check your email.`,
         });
         setStep(2);
+        setResendCooldown(30);
+        setCanResend(false);
       }
     }
     setIsLoading(false);
   };
+  
+  const handleResendCode = async () => {
+    setIsLoading(true);
+    setCanResend(false);
+    
+    const result = await verifyUser(emailForReset);
+
+    if (result.error || !result.userId) {
+       toast({ variant: 'destructive', title: 'Error', description: 'Could not resend code. Please go back and try again.' });
+       setIsLoading(false);
+       return;
+    }
+    
+    const generatedCode = await generateResetCode();
+
+    if (generatedCode) {
+        const { error: storeTokenError } = await supabase.rpc('store_password_reset_token', { user_id_in: result.userId, token_in: generatedCode });
+
+        if (storeTokenError) {
+             toast({ variant: 'destructive', title: 'Error', description: 'Could not generate new code. Please try again.' });
+             setIsLoading(false);
+             return;
+        }
+
+        toast({
+          title: 'New Verification Code',
+          description: `Your new code is ${generatedCode}.`,
+        });
+        setCode('');
+        setCodeError('');
+        setResendCooldown(30);
+    }
+    setIsLoading(false);
+  };
+
 
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,7 +245,7 @@ export function ForgotPasswordForm() {
             <CardContent>
                 <form onSubmit={handleCodeSubmit} className="space-y-6 flex flex-col items-center">
                     <div className="space-y-2 text-center">
-                        <label htmlFor="otp-input" className="text-sm font-medium">Verification Code</label>
+                         <label htmlFor="otp-input" className="text-sm font-medium">Verification Code</label>
                         <InputOTP id="otp-input" maxLength={6} value={code} onChange={setCode}>
                           <InputOTPGroup>
                             <InputOTPSlot index={0} />
@@ -209,6 +262,17 @@ export function ForgotPasswordForm() {
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Confirm Reset Code
                   </Button>
+                   <div className="text-center text-sm">
+                        {canResend ? (
+                            <Button variant="link" onClick={handleResendCode} disabled={isLoading}>
+                                {isLoading ? 'Sending...' : 'Resend Code'}
+                            </Button>
+                        ) : (
+                            <p className="text-muted-foreground">
+                                Resend code in {resendCooldown}s
+                            </p>
+                        )}
+                    </div>
                 </form>
             </CardContent>
             <CardFooter>
@@ -286,3 +350,5 @@ export function ForgotPasswordForm() {
 
   return <div>{renderStep()}</div>;
 }
+
+    
