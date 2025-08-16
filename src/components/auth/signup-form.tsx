@@ -161,6 +161,7 @@ export function SignUpForm() {
       email,
       password,
       options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -257,53 +258,51 @@ export function SignUpForm() {
 
   if (step === 2) {
     return (
-        <AuthLayout title="Verify your account">
-            <Card>
-                <CardHeader>
-                <CardTitle>Enter Verification Code</CardTitle>
-                <CardDescription>Check your email for the 6-digit code we sent to {signupData?.email}.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleCodeSubmit} className="space-y-6 flex flex-col items-center">
-                        <div className="space-y-2 text-center">
-                            <label htmlFor="otp-input" className="text-sm font-medium">Verification Code</label>
-                            <InputOTP id="otp-input" maxLength={6} value={code} onChange={setCode}>
-                            <InputOTPGroup>
-                                <InputOTPSlot index={0} />
-                                <InputOTPSlot index={1} />
-                                <InputOTPSlot index={2} />
-                                <InputOTPSlot index={3} />
-                                <InputOTPSlot index={4} />
-                                <InputOTPSlot index={5} />
-                            </InputOTPGroup>
-                            </InputOTP>
-                            {codeError && <p className="text-sm font-medium text-destructive">{codeError}</p>}
-                        </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Confirm Account
-                    </Button>
-                    <div className="text-center text-sm">
-                            {canResend ? (
-                                <Button variant="link" onClick={handleResendCode} disabled={isLoading}>
-                                    {isLoading ? 'Sending...' : 'Resend Code'}
-                                </Button>
-                            ) : (
-                                <p className="text-muted-foreground">
-                                    Resend code in {resendCooldown}s
-                                </p>
-                            )}
-                        </div>
-                    </form>
-                </CardContent>
-                 <CardFooter>
-                    <Button variant="link" className="w-full text-muted-foreground" onClick={() => router.push('/signin')}>
-                        <ArrowLeft className="mr-2 h-4 w-4"/>
-                        Back to Sign In
-                    </Button>
-                </CardFooter>
-            </Card>
-      </AuthLayout>
+        <Card>
+            <CardHeader>
+            <CardTitle>Enter Verification Code</CardTitle>
+            <CardDescription>Check your email for the 6-digit code we sent to {signupData?.email}.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleCodeSubmit} className="space-y-6 flex flex-col items-center">
+                    <div className="space-y-2 text-center">
+                        <label htmlFor="otp-input" className="text-sm font-medium">Verification Code</label>
+                        <InputOTP id="otp-input" maxLength={6} value={code} onChange={setCode}>
+                        <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                        </InputOTP>
+                        {codeError && <p className="text-sm font-medium text-destructive">{codeError}</p>}
+                    </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Confirm Account
+                </Button>
+                <div className="text-center text-sm">
+                        {canResend ? (
+                            <Button variant="link" onClick={handleResendCode} disabled={isLoading}>
+                                {isLoading ? 'Sending...' : 'Resend Code'}
+                            </Button>
+                        ) : (
+                            <p className="text-muted-foreground">
+                                Resend code in {resendCooldown}s
+                            </p>
+                        )}
+                    </div>
+                </form>
+            </CardContent>
+                <CardFooter>
+                <Button variant="link" className="w-full text-muted-foreground" onClick={() => router.push('/signin')}>
+                    <ArrowLeft className="mr-2 h-4 w-4"/>
+                    Back to Sign In
+                </Button>
+            </CardFooter>
+        </Card>
     );
   }
 
@@ -337,10 +336,10 @@ export function SignUpForm() {
                             </Select>
                         )} />
                         <FormField control={form.control} name="phone" render={({ field }) => (
-                             <FormControl><Input type="tel" placeholder="9876543210" {...field} /></FormControl>
+                                <FormControl><Input type="tel" placeholder="9876543210" {...field} /></FormControl>
                         )} />
                     </div>
-                     <FormMessage>{form.formState.errors.phone?.message}</FormMessage>
+                        <FormMessage>{form.formState.errors.phone?.message}</FormMessage>
                 </FormItem>
                 <FormField control={form.control} name="dob" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel>
@@ -380,7 +379,7 @@ export function SignUpForm() {
                     <FormItem><FormLabel>Confirm Password</FormLabel>
                         <FormControl><div className="relative">
                             <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
-                             <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
                         </div></FormControl>
@@ -394,7 +393,7 @@ export function SignUpForm() {
             </Form>
         </CardContent>
         <CardFooter className="p-6 pt-0">
-             <p className="w-full text-center text-sm text-muted-foreground">
+                <p className="w-full text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link href="/signin" className="font-medium text-primary hover:underline">
                     Sign In
