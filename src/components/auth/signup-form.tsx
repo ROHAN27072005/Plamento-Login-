@@ -20,6 +20,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase-client';
+import { sendConfirmationEmail } from '@/app/actions/send-confirmation-email';
 
 const phoneValidation = (countryCode: string, phone: string) => {
     if (countryCode === '+91') return /^\d{10}$/.test(phone);
@@ -54,9 +55,14 @@ const signUpSchema = z.object({
     message: "Passwords don't match",
     path: ['confirmPassword']
 })
-.refine(data => phoneValidation(data.countryCode, data.phone), {
-    message: getPhoneMessage(z.string().parse('+91')), // Default message, will be updated
-    path: ['phone'],
+.superRefine((data, ctx) => {
+    if (!phoneValidation(data.countryCode, data.phone)) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: getPhoneMessage(data.countryCode),
+            path: ['phone']
+        });
+    }
 });
 
 
@@ -81,16 +87,7 @@ export function SignUpForm() {
   });
 
   const password = form.watch('password');
-  const countryCode = form.watch('countryCode');
-
-  React.useEffect(() => {
-    const message = getPhoneMessage(countryCode);
-    if (form.formState.errors.phone?.message !== message) {
-        form.clearErrors('phone');
-    }
-  }, [countryCode, form]);
-
-
+  
   const passwordRequirements = [
     { text: 'At least 8 characters', fulfilled: (password?.length ?? 0) >= 8 },
     { text: 'One uppercase letter', fulfilled: /[A-Z]/.test(password) },
@@ -102,18 +99,10 @@ export function SignUpForm() {
   async function onSubmit(values: z.infer<typeof signUpSchema>) {
     setIsLoading(true);
 
-    if (!phoneValidation(values.countryCode, values.phone)) {
-        form.setError('phone', {
-            type: 'manual',
-            message: getPhoneMessage(values.countryCode)
-        });
-        setIsLoading(false);
-        return;
-    }
-
     const { email, password, firstName, lastName, phone, countryCode, dob } = values;
     
-    const { data, error } = await supabase.auth.signUp({
+    // We sign up the user but tell Supabase not to send an email.
+    const { data: { user, session }, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -122,33 +111,56 @@ export function SignUpForm() {
           last_name: lastName,
           phone: `${countryCode}${phone}`,
           dob: format(dob, 'yyyy-MM-dd'),
-        }
+        },
       }
     });
 
-    setIsLoading(false);
-
     if (error) {
+      setIsLoading(false);
       toast({
         variant: 'destructive',
         title: "Error signing up",
         description: error.message,
       });
-    } else if (data.user) {
-      if (data.user.identities && data.user.identities.length === 0) {
-        toast({
-          variant: 'destructive',
-          title: "Error signing up",
-          description: "This email address is already in use.",
-        });
-      } else {
-        toast({
-          title: "Account Created!",
-          description: "Please check your email to verify your account.",
-        });
-        router.push('/signin');
-      }
+      return;
     }
+    
+    // This case handles if the user already exists.
+    if (user && user.identities && user.identities.length === 0) {
+        setIsLoading(false);
+        toast({
+            variant: 'destructive',
+            title: "Error signing up",
+            description: "This email address is already in use.",
+        });
+        return;
+    }
+
+    if (session?.access_token) {
+       // Now we send our own custom email.
+       const emailResult = await sendConfirmationEmail({ email: email, token: session.access_token });
+       
+       if (emailResult.error) {
+           toast({ variant: 'destructive', title: 'Error', description: emailResult.error });
+           setIsLoading(false);
+           return;
+       }
+
+       toast({
+         title: "Account Created!",
+         description: "Please check your email to verify your account.",
+       });
+       router.push('/signin');
+
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not create an account. Please try again.',
+        });
+    }
+
+    setIsLoading(false);
   }
 
   return (
