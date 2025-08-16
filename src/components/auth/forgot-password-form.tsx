@@ -25,10 +25,6 @@ const emailSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
 });
 
-const codeSchema = z.object({
-  code: z.string().min(6, { message: 'Please enter the 6-digit code.' }),
-});
-
 const passwordSchema = z.object({
     password: z.string()
         .min(8, 'Password must be at least 8 characters')
@@ -47,6 +43,8 @@ export function ForgotPasswordForm() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState('');
+  const [code, setCode] = useState('');
+  const [codeError, setCodeError] = useState('');
   const { toast } = useToast();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -55,11 +53,6 @@ export function ForgotPasswordForm() {
   const emailForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
     defaultValues: { email: '' },
-  });
-
-  const codeForm = useForm<z.infer<typeof codeSchema>>({
-    resolver: zodResolver(codeSchema),
-    defaultValues: { code: '' },
   });
 
   const passwordForm = useForm<z.infer<typeof passwordSchema>>({
@@ -90,11 +83,11 @@ export function ForgotPasswordForm() {
     
     if (result.userId) {
       setUserId(result.userId);
-      const code = await generateResetCode();
+      const generatedCode = await generateResetCode();
 
-      if (code) {
+      if (generatedCode) {
         // Store the hashed token in the database
-        const { error: storeTokenError } = await supabase.rpc('store_password_reset_token', { user_id_in: result.userId, token_in: code });
+        const { error: storeTokenError } = await supabase.rpc('store_password_reset_token', { user_id_in: result.userId, token_in: generatedCode });
 
         if (storeTokenError) {
              toast({ variant: 'destructive', title: 'Error', description: 'Could not generate reset code. Please try again.' });
@@ -106,7 +99,7 @@ export function ForgotPasswordForm() {
         // For this prototype, we'll show it in a toast.
         toast({
           title: 'Verification Code',
-          description: `Your code is ${code}. Please check your email.`,
+          description: `Your code is ${generatedCode}. Please check your email.`,
         });
         setStep(2);
       }
@@ -114,17 +107,22 @@ export function ForgotPasswordForm() {
     setIsLoading(false);
   };
 
-  const handleCodeSubmit = async (values: z.infer<typeof codeSchema>) => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length < 6) {
+        setCodeError('Please enter the 6-digit code.');
+        return;
+    }
     setIsLoading(true);
-    codeForm.clearErrors('code');
+    setCodeError('');
 
     const { data: isValid, error } = await supabase.rpc('verify_password_reset_token', {
       user_id_in: userId,
-      token_in: values.code
+      token_in: code
     });
 
     if (error || !isValid) {
-      codeForm.setError('code', { type: 'manual', message: 'Invalid or expired code. Please try again.' });
+      setCodeError('Invalid or expired code. Please try again.');
       setIsLoading(false);
       return;
     }
@@ -192,13 +190,10 @@ export function ForgotPasswordForm() {
               <CardDescription>Check your email for the 6-digit code we sent you.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...codeForm}>
-                <form onSubmit={codeForm.handleSubmit(handleCodeSubmit)} className="space-y-6 flex flex-col items-center">
-                  <FormField control={codeForm.control} name="code" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Verification Code</FormLabel>
-                      <FormControl>
-                        <InputOTP maxLength={6} {...field}>
+                <form onSubmit={handleCodeSubmit} className="space-y-6 flex flex-col items-center">
+                    <div className="space-y-2 text-center">
+                        <FormLabel>Verification Code</FormLabel>
+                        <InputOTP maxLength={6} value={code} onChange={setCode}>
                           <InputOTPGroup>
                             <InputOTPSlot index={0} />
                             <InputOTPSlot index={1} />
@@ -208,16 +203,13 @@ export function ForgotPasswordForm() {
                             <InputOTPSlot index={5} />
                           </InputOTPGroup>
                         </InputOTP>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
+                        {codeError && <p className="text-sm font-medium text-destructive">{codeError}</p>}
+                    </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Confirm Reset Code
                   </Button>
                 </form>
-              </Form>
             </CardContent>
             <CardFooter>
                  <Button variant="link" className="w-full text-muted-foreground" asChild>
