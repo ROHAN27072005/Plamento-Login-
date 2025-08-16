@@ -2,6 +2,7 @@
 'use server';
 
 import { z } from 'zod';
+import nodemailer from 'nodemailer';
 
 const SendEmailInputSchema = z.object({
     email: z.string().email(),
@@ -19,32 +20,50 @@ export async function sendResetEmail(input: SendEmailInput): Promise<{ success: 
 
     const { email, code } = parsed.data;
 
-    // TODO: Replace this with your actual email sending logic.
-    // This is a placeholder and does not actually send an email.
-    // You can use a service like Resend, SendGrid, or Nodemailer.
-    // Example using Resend:
-    /*
-    import { Resend } from 'resend';
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const {
+        EMAIL_SERVER_USER,
+        EMAIL_SERVER_PASSWORD,
+        EMAIL_FROM
+    } = process.env;
+
+    if (!EMAIL_SERVER_USER || !EMAIL_SERVER_PASSWORD || !EMAIL_FROM) {
+        console.error('Missing email server environment variables.');
+        return { success: false, error: 'Server configuration error.' };
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: EMAIL_SERVER_USER,
+            pass: EMAIL_SERVER_PASSWORD,
+        },
+    });
+    
+    const mailOptions = {
+        from: `Plamento <${EMAIL_FROM}>`,
+        to: email,
+        subject: 'Your Plamento Password Reset Code',
+        html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2>Password Reset Request</h2>
+                <p>Hello,</p>
+                <p>We received a request to reset your password. Use the 6-digit code below to proceed.</p>
+                <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 20px 0; text-align: center;">
+                    ${code}
+                </p>
+                <p>This code will expire in 15 minutes.</p>
+                <p>If you did not request a password reset, please ignore this email.</p>
+                <p>Thanks,<br/>The Plamento Team</p>
+            </div>
+        `
+    };
 
     try {
-        await resend.emails.send({
-            from: 'contact.plamento@gmail.com',
-            to: email,
-            subject: 'Your Plamento Password Reset Code',
-            html: `<p>Your password reset code is: <strong>${code}</strong></p>
-                   <p>This code will expire in 15 minutes.</p>`
-        });
+        await transporter.sendMail(mailOptions);
         return { success: true };
     } catch (error) {
         console.error('Failed to send email:', error);
+        // This generic message is safer for production
         return { success: false, error: 'Failed to send verification email.' };
     }
-    */
-    
-    // For now, we'll just log it to the server console for debugging.
-    console.log(`Password reset code for ${email}: ${code}`);
-    
-    // Simulate a successful email send for the prototype.
-    return { success: true };
 }
