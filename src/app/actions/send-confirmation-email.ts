@@ -32,9 +32,10 @@ export async function sendConfirmationEmail(input: SendConfirmationEmailInput): 
         return { success: false, error: 'Server configuration error.' };
     }
     
-    // This is a simplified confirmation link for demonstration.
-    // In a real app, you would likely use the secure flow provided by Supabase Auth.
-    const confirmationLink = `${NEXT_PUBLIC_SITE_URL}/api/auth/callback?token=${token}&type=signup`;
+    // In a real app, you would construct a verification link that your app can handle.
+    // The token from Supabase is a JWT that can be used to verify the user.
+    // For simplicity, we are creating a placeholder link.
+    const confirmationLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?access_token=${token}&type=signup`;
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -49,17 +50,27 @@ export async function sendConfirmationEmail(input: SendConfirmationEmailInput): 
         to: email,
         subject: 'Confirm Your Plamento Account',
         html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <h2>Welcome to Plamento!</h2>
-                <p>Hello,</p>
-                <p>Thank you for signing up. Please click the button below to confirm your email address and activate your account.</p>
-                <p style="text-align: center; margin: 20px 0;">
-                    <a href="${confirmationLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                        Confirm Your Email
-                    </a>
-                </p>
-                <p>If you did not sign up for an account, please ignore this email.</p>
-                <p>Thanks,<br/>The Plamento Team</p>
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #ddd;">
+                        <h1 style="color: #483D8B; font-size: 28px;">Welcome to Plamento!</h1>
+                    </div>
+                    <div style="padding: 20px 0;">
+                        <p>Hello,</p>
+                        <p>Thank you for signing up. Please click the button below to confirm your email address and activate your account.</p>
+                        <p style="text-align: center; margin: 30px 0;">
+                            <a href="${confirmationLink}" style="background-color: #483D8B; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                                Confirm Your Email
+                            </a>
+                        </p>
+                        <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+                        <p style="word-break: break-all; font-size: 12px;">${confirmationLink}</p>
+                        <p>If you did not sign up for an account, please ignore this email.</p>
+                    </div>
+                    <div style="text-align: center; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #888;">
+                        <p>Thanks,<br/>The Plamento Team</p>
+                    </div>
+                </div>
             </div>
         `
     };
@@ -72,3 +83,4 @@ export async function sendConfirmationEmail(input: SendConfirmationEmailInput): 
         return { success: false, error: 'Failed to send confirmation email.' };
     }
 }
+
