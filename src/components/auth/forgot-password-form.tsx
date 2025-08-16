@@ -192,8 +192,8 @@ export function ForgotPasswordForm() {
             <CardContent>
                 <form onSubmit={handleCodeSubmit} className="space-y-6 flex flex-col items-center">
                     <div className="space-y-2 text-center">
-                        <FormLabel>Verification Code</FormLabel>
-                        <InputOTP maxLength={6} value={code} onChange={setCode}>
+                        <label htmlFor="otp-input" className="text-sm font-medium">Verification Code</label>
+                        <InputOTP id="otp-input" maxLength={6} value={code} onChange={setCode}>
                           <InputOTPGroup>
                             <InputOTPSlot index={0} />
                             <InputOTPSlot index={1} />
