@@ -11,6 +11,8 @@ const SendConfirmationEmailInputSchema = z.object({
 
 type SendConfirmationEmailInput = z.infer<typeof SendConfirmationEmailInputSchema>;
 
+// THIS FILE IS DEPRECATED AND NO LONGER USED in the new 6-digit code flow.
+// It is kept here for reference but can be safely deleted.
 export async function sendConfirmationEmail(input: SendConfirmationEmailInput): Promise<{ success: boolean; error?: string }> {
     const parsed = SendConfirmationEmailInputSchema.safeParse(input);
 
@@ -32,9 +34,6 @@ export async function sendConfirmationEmail(input: SendConfirmationEmailInput): 
         return { success: false, error: 'Server configuration error.' };
     }
     
-    // In a real app, you would construct a verification link that your app can handle.
-    // The token from Supabase is a JWT that can be used to verify the user.
-    // For simplicity, we are creating a placeholder link.
     const confirmationLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?access_token=${token}&type=signup`;
 
     const transporter = nodemailer.createTransport({
