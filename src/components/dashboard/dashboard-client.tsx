@@ -174,10 +174,12 @@ export function DashboardClient() {
                 </Card>
             </div>
         ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {[1, 2, 3, 4].map((item) => (
-                    <Card key={item} className="h-32"></Card>
-                ))}
+            <div className="flex justify-center">
+                <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
+                    {[1, 2, 3, 4].map((item) => (
+                        <Card key={item} className="h-32"></Card>
+                    ))}
+                </div>
             </div>
         )}
       </main>
