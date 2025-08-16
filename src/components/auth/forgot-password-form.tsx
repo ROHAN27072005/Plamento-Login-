@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateSecurePasswordResetCode } from '@/ai/flows/secure-password-reset-code';
+import { supabase } from '@/lib/supabase-client';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,9 +21,11 @@ type Step = 'enter-email' | 'enter-code' | 'reset-password';
 const emailSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
 });
+
 const codeSchema = z.object({
   code: z.string().length(6, { message: 'Code must be 6 digits.' }),
 });
+
 const passwordSchema = z.object({
   password: z.string()
       .min(8, 'Password must be at least 8 characters')
@@ -37,12 +39,10 @@ const passwordSchema = z.object({
   path: ['confirmPassword']
 });
 
-const registeredUsers = new Set(['test@example.com', 'user@plamento.com']);
 
 export function ForgotPasswordForm() {
   const [step, setStep] = useState<Step>('enter-email');
   const [email, setEmail] = useState('');
-  const [resetCode, setResetCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -67,59 +67,45 @@ export function ForgotPasswordForm() {
 
   const handleEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
     setIsLoading(true);
-    
-    if (!registeredUsers.has(values.email)) {
+    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+      redirectTo: `${window.location.origin}/reset-password-callback`,
+    });
+
+    if (error) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Email was not registered.',
+        description: error.message,
       });
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const { resetCode: generatedCode } = await generateSecurePasswordResetCode({ email: values.email });
-      setResetCode(generatedCode);
-      setEmail(values.email);
-      
+    } else {
       toast({
-        title: 'Code Sent!',
-        description: `A 6-digit reset code has been sent to ${values.email}. For this demo, the code is: ${generatedCode}`,
+        title: 'Password Reset Email Sent',
+        description: `If an account exists for ${values.email}, a password reset link has been sent.`,
       });
-
-      setStep('enter-code');
-    } catch (error) {
-      console.error('Failed to generate reset code:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not send reset code. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
+      // For demonstration, we'll just move to the next step. In a real app,
+      // the user would click a link in their email.
+      // To simulate this, we are not going to the next step automatically.
+      // The user would need to check their email.
     }
+    setIsLoading(false);
   };
   
-  const handleCodeSubmit = (values: z.infer<typeof codeSchema>) => {
-    setIsLoading(true);
-    if (values.code === resetCode) {
-      toast({ title: 'Success', description: 'Code verified. You can now reset your password.' });
-      setStep('reset-password');
-    } else {
-      toast({ variant: 'destructive', title: 'Invalid Code', description: 'The code you entered is incorrect.' });
-      codeForm.setError('code', { type: 'manual', message: 'Invalid code.' });
-    }
-    setIsLoading(false);
-  };
-
+  // This function would be on a separate page that the user is redirected to from their email
   const handlePasswordSubmit = async (values: z.infer<typeof passwordSchema>) => {
     setIsLoading(true);
-    console.log('Password reset for', email, 'with new password:', values.password);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast({ title: 'Password Reset!', description: 'Your password has been successfully reset.' });
-    router.push('/signin');
+    // This is a placeholder. In a real implementation, you would get the
+    // access token from the URL fragment after the user clicks the magic link.
+    const access_token = "DUMMY_TOKEN_NEEDS_IMPLEMENTATION";
+    const { error } = await supabase.auth.updateUser({ password: values.password })
+
     setIsLoading(false);
+    
+    if (error) {
+       toast({ variant: 'destructive', title: 'Error', description: 'Failed to reset password. The link may have expired.' });
+    } else {
+       toast({ title: 'Password Reset!', description: 'Your password has been successfully reset.' });
+       router.push('/signin');
+    }
   };
 
   const password = passwordForm.watch('password');
@@ -137,7 +123,7 @@ export function ForgotPasswordForm() {
         <>
           <CardHeader>
             <CardTitle>Reset Password</CardTitle>
-            <CardDescription>Enter your email and we&apos;ll send you a code to reset your password.</CardDescription>
+            <CardDescription>Enter your email and we&apos;ll send you a link to reset your password.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...emailForm}>
@@ -151,7 +137,7 @@ export function ForgotPasswordForm() {
                 )} />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Send Reset Code
+                  Send Reset Link
                 </Button>
               </form>
             </Form>
@@ -159,90 +145,10 @@ export function ForgotPasswordForm() {
         </>
       )}
 
-      {step === 'enter-code' && (
-        <>
-          <CardHeader>
-            <CardTitle>Enter Verification Code</CardTitle>
-            <CardDescription>We sent a 6-digit code to <strong>{email}</strong>. Please enter it below.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...codeForm}>
-              <form onSubmit={codeForm.handleSubmit(handleCodeSubmit)} className="space-y-6">
-                <FormField control={codeForm.control} name="code" render={({ field }) => (
-                  <FormItem className="flex flex-col items-center">
-                    <FormLabel>Verification Code</FormLabel>
-                    <FormControl>
-                        <InputOTP maxLength={6} {...field}>
-                            <InputOTPGroup>
-                                <InputOTPSlot index={0} />
-                                <InputOTPSlot index={1} />
-                                <InputOTPSlot index={2} />
-                                <InputOTPSlot index={3} />
-                                <InputOTPSlot index={4} />
-                                <InputOTPSlot index={5} />
-                            </InputOTPGroup>
-                        </InputOTP>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Verify Code
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </>
-      )}
-
-      {step === 'reset-password' && (
-        <>
-          <CardHeader>
-            <CardTitle>Set New Password</CardTitle>
-            <CardDescription>Create a new, strong password for your account.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...passwordForm}>
-              <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} className="space-y-4">
-                <FormField control={passwordForm.control} name="password" render={({ field }) => (
-                    <FormItem><FormLabel>New Password</FormLabel>
-                        <FormControl><div className="relative">
-                            <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
-                            <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
-                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
-                        </div></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                    {passwordRequirements.map((req, i) => (
-                        <div key={i} className={cn("flex items-center text-sm", req.fulfilled ? "text-chart-2" : "text-muted-foreground")}>
-                            <CheckCircle2 className="h-4 w-4 mr-2 flex-shrink-0" />
-                            <span>{req.text}</span>
-                        </div>
-                    ))}
-                </div>
-                <FormField control={passwordForm.control} name="confirmPassword" render={({ field }) => (
-                    <FormItem><FormLabel>Confirm New Password</FormLabel>
-                        <FormControl><div className="relative">
-                            <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
-                             <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
-                        </div></FormControl>
-                    <FormMessage /></FormItem>
-                )} />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Reset Password
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </>
-      )}
+      {/* The rest of the password reset flow would happen after the user clicks the link in their email */}
+      {/* For this reason, the UI for 'enter-code' and 'reset-password' is removed,
+          as Supabase handles this via a magic link by default.
+          A new page would be needed to handle the password update. */}
     </Card>
   );
 }

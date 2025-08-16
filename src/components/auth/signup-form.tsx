@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase-client';
 
 const signUpSchema = z.object({
     firstName: z.string().min(1, 'First name is required'),
@@ -96,14 +97,44 @@ export function SignUpForm() {
 
   async function onSubmit(values: z.infer<typeof signUpSchema>) {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log(values);
-    setIsLoading(false);
-    toast({
-      title: "Account Created!",
-      description: "You have successfully signed up.",
+    const { email, password, firstName, lastName, phone, countryCode, dob } = values;
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          phone: `${countryCode}${phone}`,
+          dob: format(dob, 'yyyy-MM-dd'),
+        }
+      }
     });
-    router.push('/dashboard');
+
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: "Error signing up",
+        description: error.message,
+      });
+    } else if (data.user) {
+      if (data.user.identities && data.user.identities.length === 0) {
+        toast({
+          variant: 'destructive',
+          title: "Error signing up",
+          description: "This email address is already in use.",
+        });
+      } else {
+        toast({
+          title: "Account Created!",
+          description: "Please check your email to verify your account.",
+        });
+        router.push('/signin');
+      }
+    }
   }
 
   return (
