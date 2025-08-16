@@ -35,30 +35,11 @@ export function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [hasPasswordRecoverySession, setHasPasswordRecoverySession] = useState(false);
   
   const form = useForm<z.infer<typeof passwordSchema>>({
     resolver: zodResolver(passwordSchema),
     defaultValues: { password: '', confirmPassword: '' },
   });
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-            setHasPasswordRecoverySession(true);
-        }
-    });
-
-    // Check if there's a recovery token on initial load without waiting for the event
-    const hash = window.location.hash;
-    if (hash.includes('type=recovery')) {
-        setHasPasswordRecoverySession(true);
-    }
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   const password = form.watch('password');
   const passwordRequirements = [
@@ -89,23 +70,6 @@ export function ResetPasswordForm() {
     }
   };
 
-  if (!hasPasswordRecoverySession) {
-      return (
-          <Card>
-              <CardHeader>
-                  <CardTitle>Invalid or Expired Link</CardTitle>
-                  <CardDescription>
-                      This password reset link is invalid or has expired. Please request a new one.
-                  </CardDescription>
-              </CardHeader>
-               <CardContent>
-                  <Button onClick={() => router.push('/forgot-password')} className="w-full">
-                      Request New Link
-                  </Button>
-               </CardContent>
-          </Card>
-      )
-  }
 
   return (
     <Card>
