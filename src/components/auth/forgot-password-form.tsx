@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase-client';
 import { generateSecurePasswordResetCode } from '@/ai/flows/secure-password-reset-code';
 import { updatePassword } from '@/app/actions/update-password';
+import { verifyUser } from '@/app/actions/verify-user';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,20 +72,16 @@ export function ForgotPasswordForm() {
   const handleEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
     setIsLoading(true);
     try {
-      // This is a temporary solution for the prototype to get all users.
-      // In a production environment, this should be a secure server-side call.
-      const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) throw authError;
+      // 1. Verify user exists securely on the server
+      const verifyResult = await verifyUser({ email: values.email });
 
-      const user = users.find(u => u.email === values.email);
-      
-      if (!user) {
-        emailForm.setError('email', { type: 'manual', message: 'Email was not registered.' });
+      if (verifyResult.error || !verifyResult.userId) {
+        emailForm.setError('email', { type: 'manual', message: verifyResult.error || 'Email was not registered.' });
         setIsLoading(false);
         return;
       }
-      setUserId(user.id);
+      
+      setUserId(verifyResult.userId);
       setEmail(values.email);
 
       // 2. Generate secure code
@@ -92,7 +89,7 @@ export function ForgotPasswordForm() {
 
       // 3. Store hashed code and expiry
       const { error: storeError } = await supabase.rpc('store_password_reset_token', {
-        user_id_in: user.id,
+        user_id_in: verifyResult.userId,
         token_in: resetCode
       });
       
