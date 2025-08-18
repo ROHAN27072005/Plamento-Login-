@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase-client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -184,15 +185,17 @@ export function DashboardClient() {
         ) : (
             <div className="flex justify-center">
                 <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
-                    <Card className="flex flex-col justify-between p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
-                        <div>
-                            <Map className="w-8 h-8 opacity-75" />
-                        </div>
-                        <div>
-                            <h3 className="text-2xl font-bold">SkillMapper</h3>
-                            <p className="text-sm opacity-90">Visually map your skills and career path.</p>
-                        </div>
-                    </Card>
+                    <Link href="https://skill-mapper-seven.vercel.app/" target="_blank" rel="noopener noreferrer" className="block">
+                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
+                            <div>
+                                <Map className="w-8 h-8 opacity-75" />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-bold">SkillMapper</h3>
+                                <p className="text-sm opacity-90">Visually map your skills and career path.</p>
+                            </div>
+                        </Card>
+                    </Link>
                      {[2, 3, 4].map((item) => (
                         <Card key={item} className="h-44 border-dashed"></Card>
                     ))}
