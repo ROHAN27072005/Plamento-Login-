@@ -34,40 +34,47 @@ export function DashboardClient() {
   const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          const user = session.user;
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
 
-        if (error) {
-          console.error('Error fetching profile:', error);
-          // It's possible the profile creation via trigger is pending.
-          // For now, we'll use auth data and redirect if that's also missing.
-          if (user.email && user.user_metadata) {
-            setProfile({
-              email: user.email,
-              first_name: user.user_metadata.first_name,
-              last_name: user.user_metadata.last_name,
-              phone: user.user_metadata.phone,
-              dob: user.user_metadata.dob,
-            });
+          if (error) {
+            console.error('Error fetching profile:', error);
+            // Fallback to user metadata if profile is not ready
+            if (user.email && user.user_metadata) {
+                 setProfile({
+                    email: user.email,
+                    first_name: user.user_metadata.first_name,
+                    last_name: user.user_metadata.last_name,
+                    phone: user.user_metadata.phone,
+                    dob: user.user_metadata.dob,
+                 });
+            } else {
+                // If we can't construct a profile, treat as an error
+                setProfile(null);
+                router.push('/signin');
+            }
           } else {
-             router.push('/signin'); // Redirect if profile not found or error
+            setProfile(data);
           }
         } else {
-          setProfile(data);
+          // No session, redirect to signin
+          setProfile(null);
+          router.push('/signin');
         }
-      } else {
-        router.push('/signin'); // Redirect if no user is logged in
+        setLoading(false);
       }
-      setLoading(false);
-    };
+    );
 
-    fetchProfile();
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [router]);
 
   const handleLogout = async () => {
