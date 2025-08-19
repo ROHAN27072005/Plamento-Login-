@@ -197,7 +197,7 @@ export function DashboardClient() {
                         </Card>
                     </Link>
                     <Link href="https://scancv.vercel.app/" target="_blank" rel="noopener noreferrer" className="block">
-                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-accent to-destructive text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
+                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
                                 <ScanText className="w-8 h-8 opacity-75" />
                             </div>
@@ -207,9 +207,8 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-                     {[3, 4].map((item) => (
-                        <Card key={item} className="h-44 border-dashed"></Card>
-                    ))}
+                     <Card className="h-44 p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground opacity-50 cursor-not-allowed"></Card>
+                     <Card className="h-44 p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground opacity-50 cursor-not-allowed"></Card>
                 </div>
             </div>
         )}
