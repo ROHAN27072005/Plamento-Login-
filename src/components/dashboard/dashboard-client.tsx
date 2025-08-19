@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LayoutGrid, LogOut, User, Loader2, Mail, Phone, Calendar, Map } from 'lucide-react';
+import { LayoutGrid, LogOut, User, Loader2, Mail, Phone, Calendar, Map, ScanText } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -196,7 +196,18 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-                     {[2, 3, 4].map((item) => (
+                    <Link href="https://scancv.vercel.app/" target="_blank" rel="noopener noreferrer" className="block">
+                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-accent to-destructive text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
+                            <div>
+                                <ScanText className="w-8 h-8 opacity-75" />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-bold">ScanCV</h3>
+                                <p className="text-sm opacity-90">Scan and analyze your CV with AI.</p>
+                            </div>
+                        </Card>
+                    </Link>
+                     {[3, 4].map((item) => (
                         <Card key={item} className="h-44 border-dashed"></Card>
                     ))}
                 </div>
