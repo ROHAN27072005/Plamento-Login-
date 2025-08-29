@@ -13,43 +13,25 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// TODO: This is a placeholder schema. It will be expanded as the feature is built.
 const AnalyzeResumeInputSchema = z.object({
   resumeText: z.string().describe("The full text content of the user's resume."),
   jobDescription: z.string().describe("The job description the user is targeting."),
 });
 export type AnalyzeResumeInput = z.infer<typeof AnalyzeResumeInputSchema>;
 
-// TODO: This is a placeholder schema. It will be expanded based on the blueprint.
 const AnalyzeResumeOutputSchema = z.object({
   score: z.number().describe("A score from 0 to 100 representing the resume's match to the job description."),
-  summary: z.string().describe("A brief summary of the analysis."),
-  missingSkills: z.array(z.string()).describe("A list of key skills missing from the resume."),
-  suggestions: z.array(z.string()).describe("Actionable suggestions for improvement."),
+  summary: z.string().describe("A brief summary of the analysis, highlighting strengths and key weaknesses."),
+  missingSkills: z.array(z.string()).describe("A list of key skills or qualifications mentioned in the job description but missing from the resume."),
+  suggestions: z.array(z.string()).describe("Actionable suggestions for improving the resume to better match the job description."),
 });
 export type AnalyzeResumeOutput = z.infer<typeof AnalyzeResumeOutputSchema>;
 
 
 export async function analyzeResume(input: AnalyzeResumeInput): Promise<AnalyzeResumeOutput> {
-  // This is a placeholder implementation.
-  // The actual implementation will call a Genkit flow with a detailed prompt.
-  console.log('Analyzing resume for:', input.jobDescription);
-
-  // In the future, this will be replaced by a real AI call.
-  // For now, it returns mock data to demonstrate the structure.
-  return {
-    score: 85,
-    summary: "This is a strong resume but could be improved by highlighting more project-specific achievements.",
-    missingSkills: ["Python", "Teamwork", "SQL"],
-    suggestions: [
-        "Add a 'Projects' section to showcase hands-on experience.",
-        "Include metrics to quantify your achievements, e.g., 'improved performance by 20%'.",
-    ]
-  };
+  return resumeAnalysisFlow(input);
 }
 
-/*
-// Example of the future Genkit flow implementation.
 
 const resumeAnalysisFlow = ai.defineFlow(
   {
@@ -62,19 +44,26 @@ const resumeAnalysisFlow = ai.defineFlow(
         name: 'resumeAnalysisPrompt',
         input: { schema: AnalyzeResumeInputSchema },
         output: { schema: AnalyzeResumeOutputSchema },
-        prompt: `You are an expert career coach and resume analyst. Analyze the provided resume text based on the given job description.
-        
-        Job Description: {{{jobDescription}}}
-        Resume Text: {{{resumeText}}}
+        prompt: `You are an expert career coach and professional resume analyst. Your task is to analyze the provided resume text against the given job description and provide a detailed evaluation.
 
-        Provide a score from 0-100 on how well this resume matches the job.
-        Identify key skills or qualifications that are mentioned in the job description but are missing from the resume.
-        Provide a brief summary and actionable suggestions for improvement.
+        Job Description:
+        {{{jobDescription}}}
+        
+        Resume Text:
+        {{{resumeText}}}
+
+        Based on your analysis, please perform the following actions:
+        1.  Provide a score from 0 to 100 representing how well the resume matches the job description. A higher score indicates a better match.
+        2.  Write a brief summary of the analysis, highlighting the candidate's strengths and their most significant weaknesses regarding this specific job.
+        3.  Identify key skills, technologies, or qualifications that are explicitly mentioned in the job description but are missing from the resume. List them clearly.
+        4.  Provide actionable, specific suggestions for how the user can improve their resume to be a stronger candidate for this role. For example, instead of "add skills", suggest "Incorporate terms like 'agile methodologies' and 'JIRA' which are mentioned in the job description."
         `,
     });
     
     const { output } = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error("The resume analysis flow failed to produce an output.");
+    }
+    return output;
   }
 );
-*/
