@@ -32,7 +32,6 @@ export async function analyzeResume(input: AnalyzeResumeInput): Promise<AnalyzeR
   return resumeAnalysisFlow(input);
 }
 
-
 const resumeAnalysisFlow = ai.defineFlow(
   {
     name: 'resumeAnalysisFlow',
