@@ -186,7 +186,7 @@ export function DashboardClient() {
             <div className="flex justify-center">
                 <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
                     <Link href="https://skill-mapper-seven.vercel.app/" className="block">
-                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
+                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
                                 <Map className="w-8 h-8 opacity-75" />
                             </div>
@@ -197,7 +197,7 @@ export function DashboardClient() {
                         </Card>
                     </Link>
                     <Link href="https://scancv.vercel.app/" className="block">
-                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
+                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
                                 <ScanText className="w-8 h-8 opacity-75" />
                             </div>
@@ -208,7 +208,7 @@ export function DashboardClient() {
                         </Card>
                     </Link>
                     <Link href="https://plamento-qbank.vercel.app/" className="block">
-                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
+                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
                                 <Search className="w-8 h-8 opacity-75" />
                             </div>
@@ -218,7 +218,7 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-                     <Card className="h-44 p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground opacity-50 cursor-not-allowed"></Card>
+                     <Card className="h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground opacity-50 cursor-not-allowed"></Card>
                 </div>
             </div>
         )}
