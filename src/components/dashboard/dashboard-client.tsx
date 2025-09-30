@@ -218,17 +218,20 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-                     <Link href="#" target="_blank" rel="noopener noreferrer" className="block">
-                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
-                            <div>
-                                <Mic className="w-8 h-8 opacity-75" />
+                    <div className="block">
+                        <Card className="relative flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground cursor-not-allowed opacity-60">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-lg font-bold text-white bg-black/30 px-4 py-2 rounded-md">Coming soon</span>
+                            </div>
+                            <div className="opacity-50">
+                                <Mic className="w-8 h-8" />
                             </div>
                             <div>
-                                <h3 className="text-2xl font-bold">SkillSpeak</h3>
-                                <p className="text-sm opacity-90">Practice your interview skills.</p>
+                                <h3 className="text-2xl font-bold text-transparent">SkillSpeak</h3>
+                                <p className="text-sm text-transparent">Practice your interview skills.</p>
                             </div>
                         </Card>
-                    </Link>
+                    </div>
                 </div>
             </div>
         )}
