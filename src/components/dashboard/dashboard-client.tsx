@@ -185,7 +185,7 @@ export function DashboardClient() {
         ) : (
             <div className="flex justify-center">
                 <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-2">
-                    <Link href="https://skill-mapper-seven.vercel.app/" className="block">
+                    <Link href="https://skill-mapper-seven.vercel.app/" target="_blank" rel="noopener noreferrer" className="block">
                         <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
                                 <Map className="w-8 h-8 opacity-75" />
@@ -196,7 +196,7 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-                    <Link href="https://scancv.vercel.app/" className="block">
+                    <Link href="https://scancv.vercel.app/" target="_blank" rel="noopener noreferrer" className="block">
                         <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
                                 <ScanText className="w-8 h-8 opacity-75" />
@@ -207,7 +207,7 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-                    <Link href="https://plamento-qbank.vercel.app/" className="block">
+                    <Link href="https://plamento-qbank.vercel.app/" target="_blank" rel="noopener noreferrer" className="block">
                         <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
                                 <Search className="w-8 h-8 opacity-75" />
