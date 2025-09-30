@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LayoutGrid, LogOut, User, Loader2, Mail, Phone, Calendar, Map, ScanText, Search } from 'lucide-react';
+import { LayoutGrid, LogOut, User, Loader2, Mail, Phone, Calendar, Map, ScanText, Search, Mic } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -218,7 +218,17 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-                     <Card className="h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground opacity-50 cursor-not-allowed"></Card>
+                     <Link href="#" target="_blank" rel="noopener noreferrer" className="block">
+                        <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
+                            <div>
+                                <Mic className="w-8 h-8 opacity-75" />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-bold">SkillSpeak</h3>
+                                <p className="text-sm opacity-90">Practice your interview skills.</p>
+                            </div>
+                        </Card>
+                    </Link>
                 </div>
             </div>
         )}
