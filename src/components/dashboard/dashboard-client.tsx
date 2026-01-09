@@ -207,7 +207,7 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-                    <Link href="https://plamento-skill-scout-git-main-rahuls-projects-b4672906.vercel.app" target="_blank" rel="noopener noreferrer" className="block">
+                    <Link href="https://plamento-skill-scout-gbn4ttzas-rahuls-projects-b4672906.vercel.app" target="_blank" rel="noopener noreferrer" className="block">
                         <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
                                 <Search className="w-8 h-8 opacity-75" />
