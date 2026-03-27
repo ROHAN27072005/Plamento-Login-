@@ -218,7 +218,6 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-<<<<<<< HEAD
                     <Link href="https://skillspeak-psi.vercel.app/" target="_blank" rel="noopener noreferrer" className="block">
                         <Card className="flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground transition-transform hover:scale-105 cursor-pointer">
                             <div>
@@ -230,22 +229,6 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </Link>
-=======
-                    <div className="block">
-                        <Card className="relative flex flex-col justify-between h-44 p-6 bg-gradient-to-br from-primary to-purple-600 text-primary-foreground cursor-not-allowed opacity-60">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-lg font-bold text-white bg-black/30 px-4 py-2 rounded-md">Coming soon...</span>
-                            </div>
-                            <div className="opacity-50">
-                                <Mic className="w-8 h-8" />
-                            </div>
-                            <div className="opacity-50">
-                                <h3 className="text-2xl font-bold">SkillSpeak</h3>
-                                <p className="text-sm">Practice your interview skills.</p>
-                            </div>
-                        </Card>
-                    </div>
->>>>>>> 1d0362865022a62c5e7d7d9971fe27deccb4ee04
                 </div>
             </div>
         )}
